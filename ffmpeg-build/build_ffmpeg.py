@@ -14,7 +14,12 @@ def main():
     DIST_PATH.mkdir(parents=True, exist_ok=True)
 
     run(["sudo", "apt-get", "update"])
-    run(["sudo", "apt-get", "install", "-y", "git", "pkg-config"])
+    run(["sudo", "apt-get", "install", "-y",
+         "git",
+         "pkg-config",
+         "nasm",
+         "yasm"
+    ])
 
     run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"])
 
@@ -26,6 +31,3 @@ def main():
 
     run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")])
     run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")])
-
-if __name__ == "__main__":
-    main()
