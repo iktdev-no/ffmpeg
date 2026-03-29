@@ -8,7 +8,12 @@
             "--enable-libx265",
             "--enable-libvpx",
             "--enable-libaom",
-            "--enable-libsvtav1"
+            "--enable-libsvtav1",
+            "--enable-static",
+            "--disable-shared",
+            "--pkg-config-flags=--static",
+            "--extra-ldexeflags=-static",
+            "--extra-ldflags=-static"
         ]
     },
     "amd": {

@@ -25,27 +25,27 @@ def build_svt_av1():
         "pkg-config"
     ])
 
-    # Clone with submodules (IMPORTANT!)
     run([
         "git", "clone",
         "--recurse-submodules",
         "https://gitlab.com/AOMediaCodec/SVT-AV1.git"
     ])
 
-    # Build
     run([
         "bash", "-c",
         "cd SVT-AV1 && "
         "mkdir -p build && cd build && "
-        "cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON .. && "
-        "ninja"
+        "cmake -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            .. && \
+         ninja"
     ])
 
-    # Install
     run(["sudo", "bash", "-c", "cd SVT-AV1/build && ninja install"])
-
-    # Refresh linker cache
     run(["sudo", "ldconfig"])
+
 
 def install_ffnvcodec_headers():
     run(["git", "clone", "--depth=1", "https://github.com/FFmpeg/nv-codec-headers.git"])
