@@ -221,6 +221,13 @@ jobs:
           pkg-config --list-all | grep -E 'x264|x265|aom|vpx|SvtAv1' || true
         shell: bash
 
+      - name: Set pkg-config env
+        run: |
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_LIBDIR=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
+          echo "CFLAGS=-I/usr/local/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/lib" >> $GITHUB_ENV
+
       # --- BUILD FFMPEG ---
       - run: python ffmpeg-build/generate_flags.py
       - run: python ffmpeg-build/build_ffmpeg.py
