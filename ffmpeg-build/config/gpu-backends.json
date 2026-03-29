@@ -37,10 +37,7 @@
         "nvenc": {
             "enabled": true,
             "description": "NVIDIA hardware encoding (H.264/H.265/AV1). Best GPU encoder quality.",
-            "packages": [
-                "nvidia-driver",
-                "nvidia-cuda-toolkit"
-            ],
+            "packages": [],
             "ffmpegFlags": [
                 "--enable-nvenc",
                 "--enable-cuda",
