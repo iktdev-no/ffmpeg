@@ -27,7 +27,8 @@ def main():
         "libx265-dev",
         "libvpx-dev",
         "libaom-dev",
-        "libdrm-dev"
+        "libdrm-dev",
+        "libsvtav1-dev"
     ])
 
     config = json.loads(CONFIG_PATH.read_text())

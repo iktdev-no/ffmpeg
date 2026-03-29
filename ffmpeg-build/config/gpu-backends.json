@@ -1,14 +1,14 @@
 {
     "cpu": {
         "enabled": true,
-        "description": "Software encoding using libx264/libx265/libvpx/libaom/vvenc.",
+        "description": "Software encoding using libx264/libx265/libvpx/libaom.",
         "ffmpegFlags": [
             "--enable-gpl",
             "--enable-libx264",
             "--enable-libx265",
             "--enable-libvpx",
             "--enable-libaom",
-            "--enable-libvvenc"
+            "--enable-libsvtav1"
         ]
     },
     "amd": {
