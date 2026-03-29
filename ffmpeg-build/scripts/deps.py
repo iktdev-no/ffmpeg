@@ -17,15 +17,17 @@ def install_packages(packages: List[str]):
     run(["sudo", "apt-get", "install", "-y"] + packages)
 
 def main():
+    # Required for FFmpeg on x86
+    install_packages(["nasm", "yasm"])
+
     config = json.loads(CONFIG_PATH.read_text())
 
-    # CPU has no deps
     # AMD
     for backend in config["amd"].values():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
 
-    # NVIDIA
+    # NVIDIA (no deps)
     for backend in config["nvidia"].values():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
