@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build x264
         run: python ffmpeg-build/libs/build_x264.py
 
@@ -22,11 +21,9 @@ jobs:
           mkdir -p x264-install/include
           mkdir -p x264-install/lib/pkgconfig
 
-          cp /usr/local/lib/libx264.a x264-install/lib/
           cp /usr/local/include/x264.h x264-install/include/
+          cp /usr/local/lib/libx264.a x264-install/lib/
           cp /usr/local/lib/pkgconfig/x264.pc x264-install/lib/pkgconfig/
-        shell: bash
-
       - uses: actions/upload-artifact@v4
         with:
           name: x264-install
@@ -36,7 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build x265
         run: python ffmpeg-build/libs/build_x265.py
 
@@ -45,11 +41,9 @@ jobs:
           mkdir -p x265-install/include
           mkdir -p x265-install/lib
 
-          cp /usr/local/lib/libx265.a x265-install/lib/
           cp /usr/local/include/x265.h x265-install/include/
           cp /usr/local/include/x265_config.h x265-install/include/ || true
-        shell: bash
-
+          cp /usr/local/lib/libx265.a x265-install/lib/
       - uses: actions/upload-artifact@v4
         with:
           name: x265-install
@@ -59,7 +53,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build libaom
         run: python ffmpeg-build/libs/build_libaom.py
 
@@ -68,11 +61,9 @@ jobs:
           mkdir -p libaom-install/include/aom
           mkdir -p libaom-install/lib/pkgconfig
 
+          cp /usr/local/include/aom/* libaom-install/include/aom/
           cp /usr/local/lib/libaom.a libaom-install/lib/
           cp /usr/local/lib/pkgconfig/aom.pc libaom-install/lib/pkgconfig/
-          cp /usr/local/include/aom/* libaom-install/include/aom/
-        shell: bash
-
       - uses: actions/upload-artifact@v4
         with:
           name: libaom-install
@@ -82,7 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build libvpx
         run: python ffmpeg-build/libs/build_libvpx.py
 
@@ -94,8 +84,6 @@ jobs:
           cp /usr/local/include/vpx/* libvpx-install/include/vpx/
           cp /usr/local/lib/libvpx.a libvpx-install/lib/
           cp /usr/local/lib/pkgconfig/vpx.pc libvpx-install/lib/pkgconfig/
-        shell: bash
-
       - uses: actions/upload-artifact@v4
         with:
           name: libvpx-install
@@ -105,7 +93,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build SVT-AV1
         run: python ffmpeg-build/libs/build_svtav1.py
 
@@ -117,8 +104,6 @@ jobs:
           cp /usr/local/include/svt-av1/* svtav1-install/include/svt-av1/
           cp /usr/local/lib/libSvtAv1Enc.a svtav1-install/lib/
           cp /usr/local/lib/pkgconfig/SvtAv1Enc.pc svtav1-install/lib/pkgconfig/
-        shell: bash
-
       - uses: actions/upload-artifact@v4
         with:
           name: svtav1-install
@@ -128,7 +113,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build NVENC headers
         run: python ffmpeg-build/libs/build_nvcodec.py
 
@@ -136,8 +120,6 @@ jobs:
         run: |
           mkdir -p nvcodec-install/include/ffnvcodec
           cp -r /usr/local/include/ffnvcodec/* nvcodec-install/include/ffnvcodec/
-        shell: bash
-
       - uses: actions/upload-artifact@v4
         with:
           name: nvcodec-install
@@ -185,52 +167,37 @@ jobs:
         run: |
           sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig
 
-          # x264
           sudo cp -r /tmp/x264/include/* /usr/local/include/
           sudo cp -r /tmp/x264/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/x264/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
-          # x265
           sudo cp -r /tmp/x265/include/* /usr/local/include/
           sudo cp -r /tmp/x265/lib/*.a /usr/local/lib/
 
-          # aom
           sudo cp -r /tmp/libaom/include/* /usr/local/include/
           sudo cp -r /tmp/libaom/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/libaom/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
-          # vpx
           sudo cp -r /tmp/libvpx/include/* /usr/local/include/
           sudo cp -r /tmp/libvpx/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/libvpx/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
-          # svt-av1
           sudo cp -r /tmp/svtav1/include/* /usr/local/include/
           sudo cp -r /tmp/svtav1/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/svtav1/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
-          # nvcodec (headers only)
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
-        shell: bash
 
-      # --- OPTIONAL: sanity check pkg-config ---
-      - name: Debug pkg-config
+      # --- BUILD FFMPEG (WITH CORRECT ENVIRONMENT) ---
+      - name: Build FFmpeg
         run: |
-          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
-          ls -R /usr/local/lib/pkgconfig || true
-          pkg-config --list-all | grep -E 'x264|x265|aom|vpx|SvtAv1' || true
-        shell: bash
-
-      - name: Set pkg-config env
-        run: |
-          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-          echo "PKG_CONFIG_LIBDIR=/usr/local/lib/pkgconfig" >> $GITHUB_ENV
-          echo "CFLAGS=-I/usr/local/include" >> $GITHUB_ENV
-          echo "LDFLAGS=-L/usr/local/lib" >> $GITHUB_ENV
-
-      # --- BUILD FFMPEG ---
-      - run: python ffmpeg-build/generate_flags.py
-      - run: python ffmpeg-build/build_ffmpeg.py
+          python ffmpeg-build/generate_flags.py
+          python ffmpeg-build/build_ffmpeg.py
+        env:
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
+          PKG_CONFIG_LIBDIR: /usr/local/lib/pkgconfig
+          CFLAGS: -I/usr/local/include
+          LDFLAGS: -L/usr/local/lib
 
       - uses: actions/upload-artifact@v4
         with:
