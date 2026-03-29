@@ -18,7 +18,7 @@ def install_packages(packages: List[str]):
 
 def main():
     # Required for FFmpeg on x86
-    install_packages(["nasm", "yasm"])
+    install_packages(["nasm", "yasm", "libaom-dev"])
 
     config = json.loads(CONFIG_PATH.read_text())
 
