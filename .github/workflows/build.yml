@@ -19,10 +19,12 @@ jobs:
 
       - name: Package x264 install
         run: |
-          mkdir -p x264-install
-          cp -r /usr/local/lib/libx264.a x264-install/
-          cp -r /usr/local/include/x264.h x264-install/
-          cp -r /usr/local/lib/pkgconfig/x264.pc x264-install/
+          mkdir -p x264-install/include
+          mkdir -p x264-install/lib/pkgconfig
+
+          cp /usr/local/lib/libx264.a x264-install/lib/
+          cp /usr/local/include/x264.h x264-install/include/
+          cp /usr/local/lib/pkgconfig/x264.pc x264-install/lib/pkgconfig/
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -63,10 +65,12 @@ jobs:
 
       - name: Package libaom install
         run: |
-          mkdir -p libaom-install
-          cp -r /usr/local/include/aom libaom-install/
-          cp -r /usr/local/lib/libaom.a libaom-install/
-          cp -r /usr/local/lib/pkgconfig/aom.pc libaom-install/
+          mkdir -p libaom-install/include/aom
+          mkdir -p libaom-install/lib/pkgconfig
+
+          cp /usr/local/lib/libaom.a libaom-install/lib/
+          cp /usr/local/lib/pkgconfig/aom.pc libaom-install/lib/pkgconfig/
+          cp /usr/local/include/aom/* libaom-install/include/aom/
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -84,10 +88,12 @@ jobs:
 
       - name: Package libvpx install
         run: |
-          mkdir -p libvpx-install
-          cp -r /usr/local/include/vpx libvpx-install/
-          cp -r /usr/local/lib/libvpx.a libvpx-install/
-          cp -r /usr/local/lib/pkgconfig/vpx.pc libvpx-install/
+          mkdir -p libvpx-install/include/vpx
+          mkdir -p libvpx-install/lib/pkgconfig
+
+          cp /usr/local/include/vpx/* libvpx-install/include/vpx/
+          cp /usr/local/lib/libvpx.a libvpx-install/lib/
+          cp /usr/local/lib/pkgconfig/vpx.pc libvpx-install/lib/pkgconfig/
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -105,10 +111,12 @@ jobs:
 
       - name: Package SVT-AV1 install
         run: |
-          mkdir -p svtav1-install
-          cp -r /usr/local/include/svt-av1 svtav1-install/
-          cp -r /usr/local/lib/libSvtAv1Enc.a svtav1-install/
-          cp -r /usr/local/lib/pkgconfig/SvtAv1Enc.pc svtav1-install/
+          mkdir -p svtav1-install/include/svt-av1
+          mkdir -p svtav1-install/lib/pkgconfig
+
+          cp /usr/local/include/svt-av1/* svtav1-install/include/svt-av1/
+          cp /usr/local/lib/libSvtAv1Enc.a svtav1-install/lib/
+          cp /usr/local/lib/pkgconfig/SvtAv1Enc.pc svtav1-install/lib/pkgconfig/
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -126,8 +134,8 @@ jobs:
 
       - name: Package NVENC install
         run: |
-          mkdir -p nvcodec-install
-          cp -r /usr/local/include/ffnvcodec nvcodec-install/
+          mkdir -p nvcodec-install/include/ffnvcodec
+          cp -r /usr/local/include/ffnvcodec/* nvcodec-install/include/ffnvcodec/
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -175,13 +183,32 @@ jobs:
       # --- INSTALL ALL LIBS INTO /usr/local ---
       - name: Install all libs
         run: |
-          sudo cp -r /tmp/x264/* /usr/local/
-          sudo cp -r /tmp/x265/lib/* /usr/local/lib/
+          # x264
+          sudo cp -r /tmp/x264/include/* /usr/local/include/
+          sudo cp -r /tmp/x264/lib/* /usr/local/lib/
+          sudo cp -r /tmp/x264/lib/pkgconfig/* /usr/local/lib/pkgconfig/
+
+          # x265
           sudo cp -r /tmp/x265/include/* /usr/local/include/
-          sudo cp -r /tmp/libaom/* /usr/local/
-          sudo cp -r /tmp/libvpx/* /usr/local/
-          sudo cp -r /tmp/svtav1/* /usr/local/
-          sudo cp -r /tmp/nvcodec/* /usr/local/
+          sudo cp -r /tmp/x265/lib/* /usr/local/lib/
+
+          # aom
+          sudo cp -r /tmp/libaom/include/* /usr/local/include/
+          sudo cp -r /tmp/libaom/lib/* /usr/local/lib/
+          sudo cp -r /tmp/libaom/lib/pkgconfig/* /usr/local/lib/pkgconfig/
+
+          # vpx
+          sudo cp -r /tmp/libvpx/include/* /usr/local/include/
+          sudo cp -r /tmp/libvpx/lib/* /usr/local/lib/
+          sudo cp -r /tmp/libvpx/lib/pkgconfig/* /usr/local/lib/pkgconfig/
+
+          # svt-av1
+          sudo cp -r /tmp/svtav1/include/* /usr/local/include/
+          sudo cp -r /tmp/svtav1/lib/* /usr/local/lib/
+          sudo cp -r /tmp/svtav1/lib/pkgconfig/* /usr/local/lib/pkgconfig/
+
+          # nvcodec
+          sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
         shell: bash
 
       # --- BUILD FFMPEG ---
