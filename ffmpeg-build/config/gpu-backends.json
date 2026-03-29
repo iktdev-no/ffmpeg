@@ -1,7 +1,7 @@
 {
     "cpu": {
         "enabled": true,
-        "description": "Software encoding using libx264/libx265/libvpx/libaom.",
+        "description": "Software encoding using libx264/libx265/libvpx/libaom/SVT-AV1.",
         "ffmpegFlags": [
             "--enable-gpl",
             "--enable-libx264",
@@ -19,7 +19,7 @@
     "amd": {
         "vaapi": {
             "enabled": true,
-            "description": "AMD GPU encoding on Linux via VAAPI. Works in Docker.",
+            "description": "AMD GPU encoding via VAAPI.",
             "packages": [
                 "mesa-va-drivers",
                 "libva-dev",
@@ -32,7 +32,7 @@
         },
         "amf": {
             "enabled": false,
-            "description": "AMF hardware encoding. Fully supported on Windows. Linux support is experimental.",
+            "description": "AMF on Windows/Linux.",
             "ffmpegFlags": [
                 "--enable-amf"
             ]
@@ -41,7 +41,7 @@
     "nvidia": {
         "nvenc": {
             "enabled": true,
-            "description": "NVIDIA hardware encoding (H.264/H.265/AV1). Best GPU encoder quality.",
+            "description": "NVIDIA NVENC/AV1.",
             "packages": [],
             "ffmpegFlags": [
                 "--enable-nonfree",
@@ -55,7 +55,7 @@
     "intel": {
         "qsv": {
             "enabled": false,
-            "description": "Intel QuickSync hardware encoding. Works on Linux and Windows.",
+            "description": "Intel QSV.",
             "packages": [
                 "intel-media-va-driver-non-free",
                 "intel-opencl-icd"
@@ -66,7 +66,7 @@
         },
         "vaapi": {
             "enabled": true,
-            "description": "Intel VAAPI hardware encoding. Works in Docker.",
+            "description": "Intel VAAPI.",
             "packages": [
                 "intel-media-va-driver-non-free",
                 "libva-dev",

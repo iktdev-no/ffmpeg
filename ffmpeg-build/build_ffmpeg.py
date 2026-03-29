@@ -11,21 +11,21 @@ def run(cmd: List[str]):
     subprocess.check_call(cmd)
 
 def main():
-    DIST_PATH.mkdir(exist_ok=True)
+    DIST_PATH.mkdir(parents=True, exist_ok=True)
 
-    # Clone FFmpeg
+    run(["sudo", "apt-get", "update"])
+    run(["sudo", "apt-get", "install", "-y", "git", "pkg-config"])
+
     run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"])
 
-    # Configure
     flags = FLAGS_PATH.read_text().replace("\n", " ")
-    run(["bash", "-c", f"cd ffmpeg && ./configure {flags}"])
+    cfg = f"./configure {flags} --prefix=/usr/local"
 
-    # Build (verbose)
+    run(["bash", "-c", f"cd ffmpeg && {cfg}"])
     run(["bash", "-c", "cd ffmpeg && make -j$(nproc) V=1"])
 
-    # Copy binaries
-    run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH)])
-    run(["cp", "ffmpeg/ffprobe", str(DIST_PATH)])
+    run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")])
+    run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")])
 
 if __name__ == "__main__":
     main()

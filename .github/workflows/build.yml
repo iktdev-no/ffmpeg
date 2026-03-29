@@ -1,43 +1,62 @@
-name: Build FFmpeg
+name: Build static FFmpeg
 
 on:
   push:
-    branches:
-      - master
-      
+    tags:
+      - "ffmpeg-*"
+
 permissions:
   contents: write
 
-
 jobs:
-  build:
+  x264:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
     steps:
       - uses: actions/checkout@v4
+      # restore cache
+      - run: python ffmpeg-build/libs/build_x264.py
+      # save cache
 
-      - name: Install Python deps
-        run: sudo apt-get install -y python3 python3-pip
+  x265:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # restore cache
+      - run: python ffmpeg-build/libs/build_x265.py
+      # save cache
 
-      - name: Install GPU dependencies
-        run: python3 ffmpeg-build/scripts/deps.py
+  libaom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python ffmpeg-build/libs/build_libaom.py
 
-      - name: Generate FFmpeg flags
-        run: python3 ffmpeg-build/scripts/ffmpeg_config.py
+  libvpx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python ffmpeg-build/libs/build_libvpx.py
 
-      - name: Build FFmpeg
-        run: python3 ffmpeg-build/scripts/build.py
+  svtav1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python ffmpeg-build/libs/build_svtav1.py
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+  nvcodec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python ffmpeg-build/libs/build_nvcodec.py
+
+  ffmpeg:
+    runs-on: ubuntu-latest
+    needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
+    steps:
+      - uses: actions/checkout@v4
+      - run: python ffmpeg-build/generate_flags.py
+      - run: python ffmpeg-build/build_ffmpeg.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: ffmpeg-binaries
+          name: ffmpeg-static
           path: ffmpeg-build/dist/
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ffmpeg-${{ github.run_number }}
-          name: FFmpeg Build ${{ github.run_number }}
-          files: ffmpeg-build/dist/*

@@ -10,21 +10,17 @@ def main():
     config = json.loads(CONFIG_PATH.read_text())
     flags: List[str] = []
 
-    # CPU
     if config["cpu"]["enabled"]:
         flags += config["cpu"].get("ffmpegFlags", [])
 
-    # AMD
     for backend in config["amd"].values():
         if backend["enabled"]:
             flags += backend.get("ffmpegFlags", [])
 
-    # NVIDIA
     for backend in config["nvidia"].values():
         if backend["enabled"]:
             flags += backend.get("ffmpegFlags", [])
 
-    # INTEL
     for backend in config["intel"].values():
         if backend["enabled"]:
             flags += backend.get("ffmpegFlags", [])
