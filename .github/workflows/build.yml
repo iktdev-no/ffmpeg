@@ -2,8 +2,8 @@ name: Build static FFmpeg
 
 on:
   push:
-    tags:
-      - "ffmpeg-*"
+    branches:
+      - master
 
 permissions:
   contents: write
