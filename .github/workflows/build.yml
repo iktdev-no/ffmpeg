@@ -183,32 +183,42 @@ jobs:
       # --- INSTALL ALL LIBS INTO /usr/local ---
       - name: Install all libs
         run: |
+          sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig
+
           # x264
           sudo cp -r /tmp/x264/include/* /usr/local/include/
-          sudo cp -r /tmp/x264/lib/* /usr/local/lib/
+          sudo cp -r /tmp/x264/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/x264/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
           # x265
           sudo cp -r /tmp/x265/include/* /usr/local/include/
-          sudo cp -r /tmp/x265/lib/* /usr/local/lib/
+          sudo cp -r /tmp/x265/lib/*.a /usr/local/lib/
 
           # aom
           sudo cp -r /tmp/libaom/include/* /usr/local/include/
-          sudo cp -r /tmp/libaom/lib/* /usr/local/lib/
+          sudo cp -r /tmp/libaom/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/libaom/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
           # vpx
           sudo cp -r /tmp/libvpx/include/* /usr/local/include/
-          sudo cp -r /tmp/libvpx/lib/* /usr/local/lib/
+          sudo cp -r /tmp/libvpx/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/libvpx/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
           # svt-av1
           sudo cp -r /tmp/svtav1/include/* /usr/local/include/
-          sudo cp -r /tmp/svtav1/lib/* /usr/local/lib/
+          sudo cp -r /tmp/svtav1/lib/*.a /usr/local/lib/
           sudo cp -r /tmp/svtav1/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
-          # nvcodec
+          # nvcodec (headers only)
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
+        shell: bash
+
+      # --- OPTIONAL: sanity check pkg-config ---
+      - name: Debug pkg-config
+        run: |
+          echo "PKG_CONFIG_PATH=${PKG_CONFIG_PATH}"
+          ls -R /usr/local/lib/pkgconfig || true
+          pkg-config --list-all | grep -E 'x264|x265|aom|vpx|SvtAv1' || true
         shell: bash
 
       # --- BUILD FFMPEG ---
