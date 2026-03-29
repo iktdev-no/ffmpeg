@@ -193,6 +193,27 @@ jobs:
           sudo cp /usr/local/lib/pkgconfig/*.pc /usr/lib/pkgconfig/ || true
           sudo cp /usr/local/lib/pkgconfig/*.pc /usr/share/pkgconfig/ || true
 
+      - name: Debug pkg-config environment
+        run: |
+          echo "--- WHICH PKG-CONFIG ---"
+          which pkg-config || true
+          ls -l $(which pkg-config) || true
+
+          echo "--- PKG-CONFIG VERSION ---"
+          pkg-config --version || true
+
+          echo "--- PKG_CONFIG_PATH ---"
+          echo "$PKG_CONFIG_PATH"
+
+          echo "--- LIST /usr/local/lib/pkgconfig ---"
+          ls -l /usr/local/lib/pkgconfig || true
+
+          echo "--- TRY pkg-config x264 ---"
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --exists --print-errors x264 || echo "FAILED"
+
+          echo "--- TRY pkg-config --debug x264 ---"
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --debug --exists x264 || true
+
       # --- BUILD FFMPEG (WITH CORRECT ENVIRONMENT) ---
       - name: Build FFmpeg
         env:
