@@ -25,8 +25,12 @@ def build_svt_av1():
         "pkg-config"
     ])
 
-    # Clone correct repo
-    run(["git", "clone", "--depth=1", "https://gitlab.com/AOMediaCodec/SVT-AV1.git"])
+    # Clone with submodules (IMPORTANT!)
+    run([
+        "git", "clone",
+        "--recurse-submodules",
+        "https://gitlab.com/AOMediaCodec/SVT-AV1.git"
+    ])
 
     # Build
     run([
@@ -42,6 +46,10 @@ def build_svt_av1():
 
     # Refresh linker cache
     run(["sudo", "ldconfig"])
+
+def install_ffnvcodec_headers():
+    run(["git", "clone", "--depth=1", "https://github.com/FFmpeg/nv-codec-headers.git"])
+    run(["bash", "-c", "cd nv-codec-headers && make && sudo make install"])
 
 
 def main():
@@ -60,6 +68,8 @@ def main():
 
     # Build SVT-AV1 from source
     build_svt_av1()
+
+    install_ffnvcodec_headers()
 
     config = json.loads(CONFIG_PATH.read_text())
 
