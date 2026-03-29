@@ -57,8 +57,7 @@
             ],
             "ffmpegFlags": [
                 "--enable-libmfx",
-                "--enable-libvpl",
-                "--enable-qsv"
+                "--enable-libvpl"
             ]
         },
         "vaapi": {
