@@ -43,7 +43,7 @@
                 "--enable-nvenc",
                 "--enable-cuda",
                 "--enable-cuvid",
-                "--enable-nvdec",
+                "--enable-nvdec"
             ]
         }
     },
