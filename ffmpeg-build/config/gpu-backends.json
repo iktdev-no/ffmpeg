@@ -50,7 +50,7 @@
     },
     "intel": {
         "qsv": {
-            "enabled": true,
+            "enabled": false,
             "description": "Intel QuickSync hardware encoding. Works on Linux and Windows.",
             "packages": [
                 "intel-media-va-driver-non-free",
