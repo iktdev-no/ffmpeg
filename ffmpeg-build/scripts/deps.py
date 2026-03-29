@@ -17,7 +17,6 @@ def install_packages(packages: List[str]):
     run(["sudo", "apt-get", "install", "-y"] + packages)
 
 def build_svt_av1():
-    # Install build tools
     install_packages([
         "cmake",
         "ninja-build",
@@ -26,8 +25,8 @@ def build_svt_av1():
         "pkg-config"
     ])
 
-    # Clone SVT-AV1
-    run(["git", "clone", "--depth=1", "https://github.com/AOMediaCodec/SVT-AV1.git"])
+    # Clone correct repo
+    run(["git", "clone", "--depth=1", "https://gitlab.com/AOMediaCodec/SVT-AV1.git"])
 
     # Build
     run([
@@ -41,8 +40,9 @@ def build_svt_av1():
     # Install
     run(["sudo", "bash", "-c", "cd SVT-AV1/build && ninja install"])
 
-    # Ensure pkg-config can find it
+    # Refresh linker cache
     run(["sudo", "ldconfig"])
+
 
 def main():
     # Core FFmpeg deps
