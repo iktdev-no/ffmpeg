@@ -39,6 +39,7 @@
             "description": "NVIDIA hardware encoding (H.264/H.265/AV1). Best GPU encoder quality.",
             "packages": [],
             "ffmpegFlags": [
+                "--enable-nonfree",
                 "--enable-nvenc",
                 "--enable-cuda",
                 "--enable-cuvid",
