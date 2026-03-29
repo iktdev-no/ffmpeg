@@ -14,130 +14,124 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore x264 cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libx264.a
-            /usr/local/include/x264.h
-            /usr/local/lib/pkgconfig/x264.pc
-          key: x264-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_x264.py') }}
+      - name: Build x264
+        run: python ffmpeg-build/libs/build_x264.py
 
-      - name: Build x264 if missing
+      - name: Package x264 install
         run: |
-          if [ ! -f /usr/local/lib/libx264.a ]; then
-            python ffmpeg-build/libs/build_x264.py
-          else
-            echo "x264 already cached"
-          fi
+          mkdir -p x264-install
+          cp -r /usr/local/lib/libx264.a x264-install/
+          cp -r /usr/local/include/x264.h x264-install/
+          cp -r /usr/local/lib/pkgconfig/x264.pc x264-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: x264-install
+          path: x264-install/
 
   x265:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore x265 cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libx265.a
-            /usr/local/include/x265.h
-            /usr/local/lib/pkgconfig/x265.pc
-          key: x265-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_x265.py') }}
+      - name: Build x265
+        run: python ffmpeg-build/libs/build_x265.py
 
-      - name: Build x265 if missing
+      - name: Package x265 install
         run: |
-          if [ ! -f /usr/local/lib/libx265.a ]; then
-            python ffmpeg-build/libs/build_x265.py
-          else
-            echo "x265 already cached"
-          fi
+          mkdir -p x265-install
+          cp -r /usr/local/lib/libx265.a x265-install/
+          cp -r /usr/local/include/x265.h x265-install/
+          cp -r /usr/local/lib/pkgconfig/x265.pc x265-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: x265-install
+          path: x265-install/
 
   libaom:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore libaom cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libaom.a
-            /usr/local/include/aom/
-            /usr/local/lib/pkgconfig/aom.pc
-          key: libaom-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libaom.py') }}
+      - name: Build libaom
+        run: python ffmpeg-build/libs/build_libaom.py
 
-      - name: Build libaom if missing
+      - name: Package libaom install
         run: |
-          if [ ! -f /usr/local/lib/libaom.a ]; then
-            python ffmpeg-build/libs/build_libaom.py
-          else
-            echo "libaom already cached"
-          fi
+          mkdir -p libaom-install
+          cp -r /usr/local/include/aom libaom-install/
+          cp -r /usr/local/lib/libaom.a libaom-install/
+          cp -r /usr/local/lib/pkgconfig/aom.pc libaom-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libaom-install
+          path: libaom-install/
 
   libvpx:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore libvpx cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libvpx.a
-            /usr/local/include/vpx/
-            /usr/local/lib/pkgconfig/vpx.pc
-          key: libvpx-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libvpx.py') }}
+      - name: Build libvpx
+        run: python ffmpeg-build/libs/build_libvpx.py
 
-      - name: Build libvpx if missing
+      - name: Package libvpx install
         run: |
-          if [ ! -f /usr/local/lib/libvpx.a ]; then
-            python ffmpeg-build/libs/build_libvpx.py
-          else
-            echo "libvpx already cached"
-          fi
+          mkdir -p libvpx-install
+          cp -r /usr/local/include/vpx libvpx-install/
+          cp -r /usr/local/lib/libvpx.a libvpx-install/
+          cp -r /usr/local/lib/pkgconfig/vpx.pc libvpx-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libvpx-install
+          path: libvpx-install/
 
   svtav1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore SVT-AV1 cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/lib/libSvtAv1Enc.a
-            /usr/local/include/svt-av1/
-            /usr/local/lib/pkgconfig/SvtAv1Enc.pc
-          key: svtav1-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_svtav1.py') }}
+      - name: Build SVT-AV1
+        run: python ffmpeg-build/libs/build_svtav1.py
 
-      - name: Build SVT-AV1 if missing
+      - name: Package SVT-AV1 install
         run: |
-          if [ ! -f /usr/local/lib/libSvtAv1Enc.a ]; then
-            python ffmpeg-build/libs/build_svtav1.py
-          else
-            echo "SVT-AV1 already cached"
-          fi
+          mkdir -p svtav1-install
+          cp -r /usr/local/include/svt-av1 svtav1-install/
+          cp -r /usr/local/lib/libSvtAv1Enc.a svtav1-install/
+          cp -r /usr/local/lib/pkgconfig/SvtAv1Enc.pc svtav1-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: svtav1-install
+          path: svtav1-install/
 
   nvcodec:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Restore NVENC header cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            /usr/local/include/ffnvcodec/
-          key: nvcodec-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_nvcodec.py') }}
+      - name: Build NVENC headers
+        run: python ffmpeg-build/libs/build_nvcodec.py
 
-      - name: Build NVENC headers if missing
+      - name: Package NVENC install
         run: |
-          if [ ! -f /usr/local/include/ffnvcodec/nvEncodeAPI.h ]; then
-            python ffmpeg-build/libs/build_nvcodec.py
-          else
-            echo "NVENC headers already cached"
-          fi
+          mkdir -p nvcodec-install
+          cp -r /usr/local/include/ffnvcodec nvcodec-install/
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nvcodec-install
+          path: nvcodec-install/
 
   ffmpeg:
     runs-on: ubuntu-latest
@@ -145,48 +139,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prepare directories
-        run: |
-          sudo mkdir -p /usr/local/lib/pkgconfig
-          sudo mkdir -p /usr/local/include/aom
-          sudo mkdir -p /usr/local/include/vpx
-          sudo mkdir -p /usr/local/include/svt-av1
-          sudo mkdir -p /usr/local/include/ffnvcodec
-
-      - name: Restore all lib caches
-        uses: actions/cache@v4
+      # --- DOWNLOAD ALL ARTIFACTS ---
+      - uses: actions/download-artifact@v4
         with:
-          path: |
-            /usr/local/lib/libx264.a
-            /usr/local/include/x264.h
-            /usr/local/lib/pkgconfig/x264.pc
+          name: x264-install
+          path: /tmp/x264
 
-            /usr/local/lib/libx265.a
-            /usr/local/include/x265.h
-            /usr/local/lib/pkgconfig/x265.pc
+      - uses: actions/download-artifact@v4
+        with:
+          name: x265-install
+          path: /tmp/x265
 
-            /usr/local/lib/libaom.a
-            /usr/local/include/aom/
-            /usr/local/lib/pkgconfig/aom.pc
+      - uses: actions/download-artifact@v4
+        with:
+          name: libaom-install
+          path: /tmp/libaom
 
-            /usr/local/lib/libvpx.a
-            /usr/local/include/vpx/
-            /usr/local/lib/pkgconfig/vpx.pc
+      - uses: actions/download-artifact@v4
+        with:
+          name: libvpx-install
+          path: /tmp/libvpx
 
-            /usr/local/lib/libSvtAv1Enc.a
-            /usr/local/include/svt-av1/
-            /usr/local/lib/pkgconfig/SvtAv1Enc.pc
+      - uses: actions/download-artifact@v4
+        with:
+          name: svtav1-install
+          path: /tmp/svtav1
 
-            /usr/local/include/ffnvcodec/
-          key: ffmpeg-libs-${{ runner.os }}
-          restore-keys: |
-            x264-${{ runner.os }}
-            x265-${{ runner.os }}
-            libaom-${{ runner.os }}
-            libvpx-${{ runner.os }}
-            svtav1-${{ runner.os }}
-            nvcodec-${{ runner.os }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: nvcodec-install
+          path: /tmp/nvcodec
 
+      # --- INSTALL ALL LIBS INTO /usr/local ---
+      - name: Install all libs
+        run: |
+          sudo cp -r /tmp/x264/* /usr/local/
+          sudo cp -r /tmp/x265/* /usr/local/
+          sudo cp -r /tmp/libaom/* /usr/local/
+          sudo cp -r /tmp/libvpx/* /usr/local/
+          sudo cp -r /tmp/svtav1/* /usr/local/
+          sudo cp -r /tmp/nvcodec/* /usr/local/
+        shell: bash
+
+      # --- BUILD FFMPEG ---
       - run: python ffmpeg-build/generate_flags.py
       - run: python ffmpeg-build/build_ffmpeg.py
 
