@@ -31,3 +31,6 @@ def main():
 
     run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")])
     run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")])
+
+if __name__ == "__main__":
+    main()
