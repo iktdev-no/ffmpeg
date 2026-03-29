@@ -13,49 +13,138 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # restore cache
-      - run: python ffmpeg-build/libs/build_x264.py
-      # save cache
+
+      - name: Restore x264 cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: x264-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_x264.py') }}
+
+      - name: Build x264 if missing
+        run: |
+          if [ ! -f /usr/local/lib/libx264.a ]; then
+            python ffmpeg-build/libs/build_x264.py
+          else
+            echo "x264 already cached"
+          fi
 
   x265:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # restore cache
-      - run: python ffmpeg-build/libs/build_x265.py
-      # save cache
+
+      - name: Restore x265 cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: x265-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_x265.py') }}
+
+      - name: Build x265 if missing
+        run: |
+          if [ ! -f /usr/local/lib/libx265.a ]; then
+            python ffmpeg-build/libs/build_x265.py
+          else
+            echo "x265 already cached"
+          fi
 
   libaom:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python ffmpeg-build/libs/build_libaom.py
+
+      - name: Restore libaom cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: libaom-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libaom.py') }}
+
+      - name: Build libaom if missing
+        run: |
+          if [ ! -f /usr/local/lib/libaom.a ]; then
+            python ffmpeg-build/libs/build_libaom.py
+          else
+            echo "libaom already cached"
+          fi
 
   libvpx:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python ffmpeg-build/libs/build_libvpx.py
+
+      - name: Restore libvpx cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: libvpx-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libvpx.py') }}
+
+      - name: Build libvpx if missing
+        run: |
+          if [ ! -f /usr/local/lib/libvpx.a ]; then
+            python ffmpeg-build/libs/build_libvpx.py
+          else
+            echo "libvpx already cached"
+          fi
 
   svtav1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python ffmpeg-build/libs/build_svtav1.py
+
+      - name: Restore SVT-AV1 cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: svtav1-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_svtav1.py') }}
+
+      - name: Build SVT-AV1 if missing
+        run: |
+          if [ ! -f /usr/local/lib/libSvtAv1Enc.a ]; then
+            python ffmpeg-build/libs/build_svtav1.py
+          else
+            echo "SVT-AV1 already cached"
+          fi
 
   nvcodec:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python ffmpeg-build/libs/build_nvcodec.py
+
+      - name: Restore NVENC header cache
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: nvcodec-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_nvcodec.py') }}
+
+      - name: Build NVENC headers if missing
+        run: |
+          if [ ! -f /usr/local/include/ffnvcodec/nvEncodeAPI.h ]; then
+            python ffmpeg-build/libs/build_nvcodec.py
+          else
+            echo "NVENC headers already cached"
+          fi
 
   ffmpeg:
     runs-on: ubuntu-latest
     needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Restore all lib caches
+        uses: actions/cache@v4
+        with:
+          path: /usr/local
+          key: ffmpeg-libs-${{ runner.os }}
+          restore-keys: |
+            x264-${{ runner.os }}
+            x265-${{ runner.os }}
+            libaom-${{ runner.os }}
+            libvpx-${{ runner.os }}
+            svtav1-${{ runner.os }}
+            nvcodec-${{ runner.os }}
+
       - run: python ffmpeg-build/generate_flags.py
       - run: python ffmpeg-build/build_ffmpeg.py
+
       - uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-static
