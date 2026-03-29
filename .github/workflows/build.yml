@@ -190,14 +190,18 @@ jobs:
 
       # --- BUILD FFMPEG (WITH CORRECT ENVIRONMENT) ---
       - name: Build FFmpeg
-        run: |
-          python ffmpeg-build/generate_flags.py
-          python ffmpeg-build/build_ffmpeg.py
         env:
           PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
           PKG_CONFIG_LIBDIR: /usr/local/lib/pkgconfig
           CFLAGS: -I/usr/local/include
           LDFLAGS: -L/usr/local/lib
+        run: |
+          python ffmpeg-build/generate_flags.py
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
+          PKG_CONFIG_LIBDIR=/usr/local/lib/pkgconfig \
+          CFLAGS="-I/usr/local/include" \
+          LDFLAGS="-L/usr/local/lib" \
+          python ffmpeg-build/build_ffmpeg.py
 
       - uses: actions/upload-artifact@v4
         with:
