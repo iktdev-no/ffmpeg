@@ -178,3 +178,12 @@ jobs:
                 libvpx-${{ runner.os }}
                 svtav1-${{ runner.os }}
                 nvcodec-${{ runner.os }}
+
+
+      - run: python ffmpeg-build/generate_flags.py
+      - run: python ffmpeg-build/build_ffmpeg.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-static
+          path: ffmpeg-build/dist/
