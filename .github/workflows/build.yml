@@ -162,6 +162,11 @@ jobs:
           name: nvcodec-install
           path: /tmp/nvcodec
 
+      - name: Install static system libs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6-dev
+
       # --- INSTALL ALL LIBS INTO /usr/local ---
       - name: Install all libs
         run: |
