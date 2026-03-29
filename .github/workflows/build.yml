@@ -1,0 +1,30 @@
+name: Build FFmpeg
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Python deps
+        run: sudo apt-get install -y python3 python3-pip
+
+      - name: Install GPU dependencies
+        run: python3 ffmpeg-build/scripts/deps.py
+
+      - name: Generate FFmpeg flags
+        run: python3 ffmpeg-build/scripts/ffmpeg_config.py
+
+      - name: Build FFmpeg
+        run: python3 ffmpeg-build/scripts/build.py
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-binaries
+          path: ffmpeg-build/dist/

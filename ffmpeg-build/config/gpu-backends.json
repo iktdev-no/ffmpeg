@@ -1,0 +1,81 @@
+{
+    "cpu": {
+        "enabled": true,
+        "description": "Software encoding using libx264/libx265/libvpx/libaom/vvenc.",
+        "ffmpegFlags": [
+            "--enable-gpl",
+            "--enable-libx264",
+            "--enable-libx265",
+            "--enable-libvpx",
+            "--enable-libaom",
+            "--enable-libvvenc"
+        ]
+    },
+    "amd": {
+        "vaapi": {
+            "enabled": true,
+            "description": "AMD GPU encoding on Linux via VAAPI. Works in Docker.",
+            "packages": [
+                "mesa-va-drivers",
+                "libva-dev",
+                "libdrm-dev"
+            ],
+            "ffmpegFlags": [
+                "--enable-vaapi",
+                "--enable-libdrm"
+            ]
+        },
+        "amf": {
+            "enabled": false,
+            "description": "AMF hardware encoding. Fully supported on Windows. Linux support is experimental.",
+            "ffmpegFlags": [
+                "--enable-amf"
+            ]
+        }
+    },
+    "nvidia": {
+        "nvenc": {
+            "enabled": true,
+            "description": "NVIDIA hardware encoding (H.264/H.265/AV1). Best GPU encoder quality.",
+            "packages": [
+                "nvidia-driver",
+                "nvidia-cuda-toolkit"
+            ],
+            "ffmpegFlags": [
+                "--enable-nvenc",
+                "--enable-cuda",
+                "--enable-cuvid",
+                "--enable-nvdec",
+                "--enable-libnpp"
+            ]
+        }
+    },
+    "intel": {
+        "qsv": {
+            "enabled": true,
+            "description": "Intel QuickSync hardware encoding. Works on Linux and Windows.",
+            "packages": [
+                "intel-media-va-driver-non-free",
+                "intel-opencl-icd"
+            ],
+            "ffmpegFlags": [
+                "--enable-libmfx",
+                "--enable-libvpl",
+                "--enable-qsv"
+            ]
+        },
+        "vaapi": {
+            "enabled": true,
+            "description": "Intel VAAPI hardware encoding. Works in Docker.",
+            "packages": [
+                "intel-media-va-driver-non-free",
+                "libva-dev",
+                "libdrm-dev"
+            ],
+            "ffmpegFlags": [
+                "--enable-vaapi",
+                "--enable-libdrm"
+            ]
+        }
+    }
+}
