@@ -17,22 +17,30 @@ def install_packages(packages: List[str]):
     run(["sudo", "apt-get", "install", "-y"] + packages)
 
 def main():
-    # Required for FFmpeg on x86
-    install_packages(["nasm", "yasm", "libaom-dev"])
+    # Core FFmpeg deps
+    install_packages([
+        "nasm",
+        "yasm",
+        "pkg-config",
+        "build-essential",
+        "libx264-dev",
+        "libx265-dev",
+        "libvpx-dev",
+        "libaom-dev",
+        "libdrm-dev"
+    ])
 
     config = json.loads(CONFIG_PATH.read_text())
 
-    # AMD
+    # AMD VAAPI
     for backend in config["amd"].values():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
 
-    # NVIDIA (no deps)
-    for backend in config["nvidia"].values():
-        if backend["enabled"]:
-            install_packages(backend.get("packages", []))
+    # NVIDIA (no deps in CI)
+    # libnpp cannot be built in CI
 
-    # INTEL
+    # Intel VAAPI (QSV disabled)
     for backend in config["intel"].values():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
