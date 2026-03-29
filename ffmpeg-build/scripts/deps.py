@@ -16,6 +16,34 @@ def install_packages(packages: List[str]):
     run(["sudo", "apt-get", "update"])
     run(["sudo", "apt-get", "install", "-y"] + packages)
 
+def build_svt_av1():
+    # Install build tools
+    install_packages([
+        "cmake",
+        "ninja-build",
+        "git",
+        "build-essential",
+        "pkg-config"
+    ])
+
+    # Clone SVT-AV1
+    run(["git", "clone", "--depth=1", "https://github.com/AOMediaCodec/SVT-AV1.git"])
+
+    # Build
+    run([
+        "bash", "-c",
+        "cd SVT-AV1 && "
+        "mkdir -p build && cd build && "
+        "cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON .. && "
+        "ninja"
+    ])
+
+    # Install
+    run(["sudo", "bash", "-c", "cd SVT-AV1/build && ninja install"])
+
+    # Ensure pkg-config can find it
+    run(["sudo", "ldconfig"])
+
 def main():
     # Core FFmpeg deps
     install_packages([
@@ -27,9 +55,11 @@ def main():
         "libx265-dev",
         "libvpx-dev",
         "libaom-dev",
-        "libdrm-dev",
-        "libsvtav1-dev"
+        "libdrm-dev"
     ])
+
+    # Build SVT-AV1 from source
+    build_svt_av1()
 
     config = json.loads(CONFIG_PATH.read_text())
 
@@ -38,9 +68,7 @@ def main():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
 
-    # NVIDIA (no deps in CI)
-
-    # Intel VAAPI (QSV disabled)
+    # Intel VAAPI
     for backend in config["intel"].values():
         if backend["enabled"]:
             install_packages(backend.get("packages", []))
