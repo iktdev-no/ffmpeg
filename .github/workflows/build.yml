@@ -140,57 +140,57 @@ jobs:
           fi
 
   ffmpeg:
-      runs-on: ubuntu-latest
-      needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
-      steps:
-        - uses: actions/checkout@v4
+    runs-on: ubuntu-latest
+    needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
+    steps:
+      - uses: actions/checkout@v4
 
-        - name: Prepare directories
-          run: |
-            sudo mkdir -p /usr/local/lib/pkgconfig
-            sudo mkdir -p /usr/local/include/aom
-            sudo mkdir -p /usr/local/include/vpx
-            sudo mkdir -p /usr/local/include/svt-av1
-            sudo mkdir -p /usr/local/include/ffnvcodec
+      - name: Prepare directories
+        run: |
+          sudo mkdir -p /usr/local/lib/pkgconfig
+          sudo mkdir -p /usr/local/include/aom
+          sudo mkdir -p /usr/local/include/vpx
+          sudo mkdir -p /usr/local/include/svt-av1
+          sudo mkdir -p /usr/local/include/ffnvcodec
 
-        - name: Restore all lib caches
-          uses: actions/cache@v4
-          with:
-            path: |
-                /usr/local/lib/libx264.a
-                /usr/local/include/x264.h
-                /usr/local/lib/pkgconfig/x264.pc
+      - name: Restore all lib caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/lib/libx264.a
+            /usr/local/include/x264.h
+            /usr/local/lib/pkgconfig/x264.pc
 
-                /usr/local/lib/libx265.a
-                /usr/local/include/x265.h
-                /usr/local/lib/pkgconfig/x265.pc
+            /usr/local/lib/libx265.a
+            /usr/local/include/x265.h
+            /usr/local/lib/pkgconfig/x265.pc
 
-                /usr/local/lib/libaom.a
-                /usr/local/include/aom
-                /usr/local/lib/pkgconfig/aom.pc
+            /usr/local/lib/libaom.a
+            /usr/local/include/aom
+            /usr/local/lib/pkgconfig/aom.pc
 
-                /usr/local/lib/libvpx.a
-                /usr/local/include/vpx
-                /usr/local/lib/pkgconfig/vpx.pc
+            /usr/local/lib/libvpx.a
+            /usr/local/include/vpx
+            /usr/local/lib/pkgconfig/vpx.pc
 
-                /usr/local/lib/libSvtAv1Enc.a
-                /usr/local/include/svt-av1
-                /usr/local/lib/pkgconfig/SvtAv1Enc.pc
+            /usr/local/lib/libSvtAv1Enc.a
+            /usr/local/include/svt-av1
+            /usr/local/lib/pkgconfig/SvtAv1Enc.pc
 
-                /usr/local/include/ffnvcodec
-            key: ffmpeg-libs-${{ runner.os }}
-            restore-keys: |
-                x264-${{ runner.os }}
-                x265-${{ runner.os }}
-                libaom-${{ runner.os }}
-                libvpx-${{ runner.os }}
-                svtav1-${{ runner.os }}
-                nvcodec-${{ runner.os }}
+            /usr/local/include/ffnvcodec
+          key: ffmpeg-libs-${{ runner.os }}
+          restore-keys: |
+            x264-${{ runner.os }}
+            x265-${{ runner.os }}
+            libaom-${{ runner.os }}
+            libvpx-${{ runner.os }}
+            svtav1-${{ runner.os }}
+            nvcodec-${{ runner.os }}
 
-        - run: python ffmpeg-build/generate_flags.py
-        - run: python ffmpeg-build/build_ffmpeg.py
+      - run: python ffmpeg-build/generate_flags.py
+      - run: python ffmpeg-build/build_ffmpeg.py
 
-        - uses: actions/upload-artifact@v4
-          with:
-             name: ffmpeg-static
-             path: ffmpeg-build/dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-static
+          path: ffmpeg-build/dist/
