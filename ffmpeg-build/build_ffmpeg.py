@@ -17,6 +17,9 @@ def main() -> None:
     # Ensure pkg-config sees /usr/local libs
     env: Dict[str, str] = os.environ.copy()
     env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig"
+    env["CFLAGS"] = "-I/usr/local/include"
+    env["LDFLAGS"] = "-L/usr/local/lib"
+
 
     run(["sudo", "apt-get", "update"], env=env)
     run(["sudo", "apt-get", "install", "-y",
