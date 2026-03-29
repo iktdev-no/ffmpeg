@@ -38,7 +38,6 @@ def main():
             install_packages(backend.get("packages", []))
 
     # NVIDIA (no deps in CI)
-    # libnpp cannot be built in CI
 
     # Intel VAAPI (QSV disabled)
     for backend in config["intel"].values():

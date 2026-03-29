@@ -44,7 +44,6 @@
                 "--enable-cuda",
                 "--enable-cuvid",
                 "--enable-nvdec",
-                "--enable-libnpp"
             ]
         }
     },
