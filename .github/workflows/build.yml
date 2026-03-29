@@ -28,3 +28,10 @@ jobs:
         with:
           name: ffmpeg-binaries
           path: ffmpeg-build/dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ffmpeg-${{ github.run_number }}
+          name: FFmpeg Build ${{ github.run_number }}
+          files: ffmpeg-build/dist/*
