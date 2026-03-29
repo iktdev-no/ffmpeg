@@ -63,7 +63,7 @@ jobs:
         with:
           path: |
             /usr/local/lib/libaom.a
-            /usr/local/include/aom
+            /usr/local/include/aom/
             /usr/local/lib/pkgconfig/aom.pc
           key: libaom-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libaom.py') }}
 
@@ -85,7 +85,7 @@ jobs:
         with:
           path: |
             /usr/local/lib/libvpx.a
-            /usr/local/include/vpx
+            /usr/local/include/vpx/
             /usr/local/lib/pkgconfig/vpx.pc
           key: libvpx-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_libvpx.py') }}
 
@@ -107,7 +107,7 @@ jobs:
         with:
           path: |
             /usr/local/lib/libSvtAv1Enc.a
-            /usr/local/include/svt-av1
+            /usr/local/include/svt-av1/
             /usr/local/lib/pkgconfig/SvtAv1Enc.pc
           key: svtav1-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_svtav1.py') }}
 
@@ -128,7 +128,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            /usr/local/include/ffnvcodec
+            /usr/local/include/ffnvcodec/
           key: nvcodec-${{ runner.os }}-${{ hashFiles('ffmpeg-build/libs/build_nvcodec.py') }}
 
       - name: Build NVENC headers if missing
@@ -166,18 +166,18 @@ jobs:
             /usr/local/lib/pkgconfig/x265.pc
 
             /usr/local/lib/libaom.a
-            /usr/local/include/aom
+            /usr/local/include/aom/
             /usr/local/lib/pkgconfig/aom.pc
 
             /usr/local/lib/libvpx.a
-            /usr/local/include/vpx
+            /usr/local/include/vpx/
             /usr/local/lib/pkgconfig/vpx.pc
 
             /usr/local/lib/libSvtAv1Enc.a
-            /usr/local/include/svt-av1
+            /usr/local/include/svt-av1/
             /usr/local/lib/pkgconfig/SvtAv1Enc.pc
 
-            /usr/local/include/ffnvcodec
+            /usr/local/include/ffnvcodec/
           key: ffmpeg-libs-${{ runner.os }}
           restore-keys: |
             x264-${{ runner.os }}
