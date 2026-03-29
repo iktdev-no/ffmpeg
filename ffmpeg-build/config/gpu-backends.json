@@ -1,81 +1,59 @@
 {
-    "cpu": {
-        "enabled": true,
-        "description": "Software encoding using libx264/libx265/libvpx/libaom/SVT-AV1.",
-        "ffmpegFlags": [
-            "--enable-gpl",
-            "--enable-libx264",
-            "--enable-libx265",
-            "--enable-libvpx",
-            "--enable-libaom",
-            "--enable-libsvtav1",
-            "--enable-static",
-            "--disable-shared",
-            "--pkg-config-flags=--static",
-            "--extra-ldexeflags=-static",
-            "--extra-ldflags=-static"
-        ]
+  "cpu": {
+    "enabled": true,
+    "description": "Software encoding using libx264/libx265/libvpx/libaom/SVT-AV1.",
+    "ffmpegFlags": [
+      "--enable-gpl",
+      "--enable-libx264",
+      "--enable-libx265",
+      "--enable-libvpx",
+      "--enable-libaom",
+      "--enable-libsvtav1",
+      "--enable-static",
+      "--disable-shared",
+      "--extra-ldexeflags=-static",
+      "--extra-ldflags=-static"
+    ]
+  },
+  "amd": {
+    "vaapi": {
+      "enabled": true,
+      "description": "AMD GPU encoding via VAAPI.",
+      "packages": ["mesa-va-drivers", "libva-dev", "libdrm-dev"],
+      "ffmpegFlags": ["--enable-vaapi", "--enable-libdrm"]
     },
-    "amd": {
-        "vaapi": {
-            "enabled": true,
-            "description": "AMD GPU encoding via VAAPI.",
-            "packages": [
-                "mesa-va-drivers",
-                "libva-dev",
-                "libdrm-dev"
-            ],
-            "ffmpegFlags": [
-                "--enable-vaapi",
-                "--enable-libdrm"
-            ]
-        },
-        "amf": {
-            "enabled": false,
-            "description": "AMF on Windows/Linux.",
-            "ffmpegFlags": [
-                "--enable-amf"
-            ]
-        }
-    },
-    "nvidia": {
-        "nvenc": {
-            "enabled": true,
-            "description": "NVIDIA NVENC/AV1.",
-            "packages": [],
-            "ffmpegFlags": [
-                "--enable-nonfree",
-                "--enable-nvenc",
-                "--enable-cuda",
-                "--enable-cuvid",
-                "--enable-nvdec"
-            ]
-        }
-    },
-    "intel": {
-        "qsv": {
-            "enabled": false,
-            "description": "Intel QSV.",
-            "packages": [
-                "intel-media-va-driver-non-free",
-                "intel-opencl-icd"
-            ],
-            "ffmpegFlags": [
-                "--enable-libvpl"
-            ]
-        },
-        "vaapi": {
-            "enabled": true,
-            "description": "Intel VAAPI.",
-            "packages": [
-                "intel-media-va-driver-non-free",
-                "libva-dev",
-                "libdrm-dev"
-            ],
-            "ffmpegFlags": [
-                "--enable-vaapi",
-                "--enable-libdrm"
-            ]
-        }
+    "amf": {
+      "enabled": false,
+      "description": "AMF on Windows/Linux.",
+      "ffmpegFlags": ["--enable-amf"]
     }
+  },
+  "nvidia": {
+    "nvenc": {
+      "enabled": true,
+      "description": "NVIDIA NVENC/AV1.",
+      "packages": [],
+      "ffmpegFlags": [
+        "--enable-nonfree",
+        "--enable-nvenc",
+        "--enable-cuda",
+        "--enable-cuvid",
+        "--enable-nvdec"
+      ]
+    }
+  },
+  "intel": {
+    "qsv": {
+      "enabled": false,
+      "description": "Intel QSV.",
+      "packages": ["intel-media-va-driver-non-free", "intel-opencl-icd"],
+      "ffmpegFlags": ["--enable-libvpl"]
+    },
+    "vaapi": {
+      "enabled": true,
+      "description": "Intel VAAPI.",
+      "packages": ["intel-media-va-driver-non-free", "libva-dev", "libdrm-dev"],
+      "ffmpegFlags": ["--enable-vaapi", "--enable-libdrm"]
+    }
+  }
 }
