@@ -40,10 +40,12 @@ jobs:
 
       - name: Package x265 install
         run: |
-          mkdir -p x265-install
-          cp -r /usr/local/lib/libx265.a x265-install/
-          cp -r /usr/local/include/x265.h x265-install/
-          cp -r /usr/local/lib/pkgconfig/x265.pc x265-install/
+          mkdir -p x265-install/include
+          mkdir -p x265-install/lib
+
+          cp /usr/local/lib/libx265.a x265-install/lib/
+          cp /usr/local/include/x265.h x265-install/include/
+          cp /usr/local/include/x265_config.h x265-install/include/ || true
         shell: bash
 
       - uses: actions/upload-artifact@v4
@@ -174,7 +176,8 @@ jobs:
       - name: Install all libs
         run: |
           sudo cp -r /tmp/x264/* /usr/local/
-          sudo cp -r /tmp/x265/* /usr/local/
+          sudo cp -r /tmp/x265/lib/* /usr/local/lib/
+          sudo cp -r /tmp/x265/include/* /usr/local/include/
           sudo cp -r /tmp/libaom/* /usr/local/
           sudo cp -r /tmp/libvpx/* /usr/local/
           sudo cp -r /tmp/svtav1/* /usr/local/
