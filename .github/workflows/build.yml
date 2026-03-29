@@ -188,6 +188,11 @@ jobs:
 
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
 
+      - name: Force system pkg-config to see our .pc files
+        run: |
+          sudo cp /usr/local/lib/pkgconfig/*.pc /usr/lib/pkgconfig/ || true
+          sudo cp /usr/local/lib/pkgconfig/*.pc /usr/share/pkgconfig/ || true
+
       # --- BUILD FFMPEG (WITH CORRECT ENVIRONMENT) ---
       - name: Build FFmpeg
         env:
