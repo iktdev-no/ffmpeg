@@ -149,42 +149,49 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
         rm -rf x265 && \
         git clone --depth=1 https://github.com/videolan/x265.git && \
         cd x265/build/linux && \
-        cmake ../../source -G "Unix Makefiles" \
+        cmake ../../source \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DENABLE_SHARED=OFF \
-            -DENABLE_PIC=ON && \
+            -DENABLE_PIC=ON \
+            -DENABLE_AVX512=OFF && \
         make -j$(nproc) && \
         sudo make install
     """, env)
 
-    # 🔥 FIX: create pkg-config for x265
+    # 🔥 FIXED pkg-config
     sh(r"""
-        echo "Fixing x265 pkg-config"
+echo "Fixing x265 pkg-config"
 
-        sudo mkdir -p /usr/local/lib/pkgconfig
+sudo mkdir -p /usr/local/lib/pkgconfig
 
-        if [ -f /usr/local/lib/libx265.a ]; then
-            LIBDIR=/usr/local/lib
-        elif [ -f /usr/local/lib64/libx265.a ]; then
-            LIBDIR=/usr/local/lib64
-        else
-            echo "ERROR: libx265 not found"
-            exit 1
-        fi
+if [ -f /usr/local/lib/libx265.a ]; then
+    LIBDIR=/usr/local/lib
+elif [ -f /usr/local/lib64/libx265.a ]; then
+    LIBDIR=/usr/local/lib64
+else
+    echo "ERROR: libx265 not found"
+    exit 1
+fi
 
-        sudo tee /usr/local/lib/pkgconfig/x265.pc > /dev/null <<EOF
-    prefix=/usr/local
-    exec_prefix=\${prefix}
-    libdir=\${prefix}/lib
-    includedir=\${prefix}/include
+sudo tee /usr/local/lib/pkgconfig/x265.pc > /dev/null <<EOF
+prefix=/usr/local
+exec_prefix=\${prefix}
+libdir=${LIBDIR}
+includedir=\${prefix}/include
 
-    Name: x265
-    Description: H.265/HEVC encoder
-    Version: 3.5
-    Libs: -L${LIBDIR} -lx265 -lpthread -lm
-    Cflags: -I\${includedir}
-    EOF
-    """, env)
+Name: x265
+Description: H.265/HEVC encoder
+Version: 3.5
+Libs: -L${LIBDIR} -lx265 -lpthread -lm
+Cflags: -I\${includedir}
+EOF
+
+echo "==== x265.pc ===="
+cat /usr/local/lib/pkgconfig/x265.pc
+
+echo "==== pkg-config test ===="
+PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --libs x265 || exit 1
+""", env)
 
     # aom
     sh("""
@@ -218,6 +225,11 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
 def build_ffmpeg(flags: str, env: Dict[str, str]) -> None:
     print("\n🚀 Building FFmpeg")
 
+    # 🔥 DEBUG FIRST
+    sh("pkg-config --list-all | grep x265 || true", env)
+    sh("pkg-config --cflags x265 || true", env)
+    sh("pkg-config --libs x265 || true", env)
+
     sh(f"""
         rm -rf ffmpeg && \
         git clone --depth=1 https://github.com/ffmpeg/ffmpeg.git && \
@@ -244,6 +256,8 @@ def main() -> None:
 
     env: Dict[str, str] = dict(os.environ)
     env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+    env["PKG_CONFIG_ALLOW_SYSTEM_LIBS"] = "1"
+    env["PKG_CONFIG_ALLOW_SYSTEM_CFLAGS"] = "1"
     env.pop("PKG_CONFIG_LIBDIR", None)
 
     WORKDIR.mkdir(exist_ok=True)
