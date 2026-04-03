@@ -15,31 +15,42 @@ def main() -> None:
     DIST_PATH.mkdir(parents=True, exist_ok=True)
 
     env: Dict[str, str] = os.environ.copy()
-    env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
-    env["PKG_CONFIG"] = "pkg-config --static"
+
+    # (valgfritt, men trygt å beholde)
     env["CFLAGS"] = "-I/usr/local/include"
     env["LDFLAGS"] = "-L/usr/local/lib"
 
     run(["sudo", "apt-get", "update"], env=env)
     run(["sudo", "apt-get", "install", "-y",
          "git",
-         "pkg-config",
          "nasm",
          "yasm"
     ], env=env)
 
+    # clean clone (viktig i CI-cache scenario)
+    run(["rm", "-rf", "ffmpeg"], env=env)
     run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"], env=env)
 
-    flags = FLAGS_PATH.read_text().replace("\n", " ")
-    cfg = f"./configure {flags} --pkg-config-flags=--static --prefix=/usr/local"
+    flags = FLAGS_PATH.read_text().replace("\n", " ").strip()
 
-    run([
-        "bash", "-c",
-        f"cd ffmpeg && PKG_CONFIG='pkg-config --static' PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig {cfg}"
-    ], env=env)
+    cfg = (
+        f"./configure {flags} "
+        "--prefix=/usr/local "
+        "--enable-static "
+        "--disable-shared "
+        "--extra-cflags='-I/usr/local/include' "
+        "--extra-ldflags='-L/usr/local/lib "
+        "-lx264 -lx265 -laom -lvpx -lSvtAv1Enc "
+        "-lpthread -lm -lz -ldl'"
+    )
 
+    # run configure
+    run(["bash", "-c", f"cd ffmpeg && {cfg}"], env=env)
+
+    # build
     run(["bash", "-c", "cd ffmpeg && make -j$(nproc) V=1"], env=env)
 
+    # install artifacts
     run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")], env=env)
     run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")], env=env)
 
