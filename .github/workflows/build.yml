@@ -87,7 +87,6 @@ jobs:
           CFLAGS: -I/usr/local/include
           LDFLAGS: -L/usr/local/lib
         run: |
-          python ffmpeg-build/generate_flags.py
           python ffmpeg-build/build_ffmpeg.py
 
       # ─────────────────────────────────────

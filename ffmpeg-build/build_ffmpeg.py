@@ -42,7 +42,7 @@ class Config(BaseModel):
 # ─────────────────────────────────────────────
 # PATHS
 # ─────────────────────────────────────────────
-CONFIG_FILE = "config/gpu-backends.json"
+CONFIG_FILE = "ffmpeg-build/config/gpu-backends.json"
 WORKDIR = Path("build")
 PREFIX = "/usr/local"
 
