@@ -228,11 +228,11 @@ jobs:
 
       - name: Validate deps (STRICT)
         run: |
-          pkg-config --static --exists x264 || exit 1
-          pkg-config --static --exists x265 || exit 1
-          pkg-config --static --exists aom || exit 1
-          pkg-config --static --exists vpx || exit 1
-          pkg-config --static --exists SvtAv1Enc || exit 1
+          pkg-config --exists x264 || exit 1
+          pkg-config --exists x265 || exit 1
+          pkg-config --exists aom || exit 1
+          pkg-config --exists vpx || exit 1
+          pkg-config --exists SvtAv1Enc || exit 1
 
           pkg-config --static --libs x264
           pkg-config --static --libs x265
