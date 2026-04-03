@@ -19,11 +19,18 @@ def main():
     run(["sudo", "ldconfig"])
 
     run(["bash", "-c", r"""
-    test -f /usr/local/lib/pkgconfig/x265.pc || {
-    test -f /usr/local/lib64/pkgconfig/x265.pc || {
+    set -e
+
+    if [ -f /usr/local/lib/pkgconfig/x265.pc ]; then
+    exit 0
+    fi
+
+    if [ -f /usr/local/lib64/pkgconfig/x265.pc ]; then
+    exit 0
+    fi
+
     echo "ERROR: x265.pc missing (CMake install failed)"
     exit 1
-    }}
     """])
 
 if __name__ == "__main__":
