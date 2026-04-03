@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 
 # ─────────────────────────────────────────────
-# CONFIG SCHEMA (PYDANTIC)
+# CONFIG SCHEMA
 # ─────────────────────────────────────────────
 class CodecConfig(BaseModel):
     enabled: bool = False
@@ -61,7 +61,7 @@ def sh(cmd: str, env: Optional[Dict[str, str]] = None) -> None:
 
 
 # ─────────────────────────────────────────────
-# LOAD CONFIG (STRICT VALIDATION HERE)
+# LOAD CONFIG
 # ─────────────────────────────────────────────
 def load_config() -> Config:
     with open(CONFIG_FILE, "r") as f:
@@ -70,7 +70,7 @@ def load_config() -> Config:
 
 
 # ─────────────────────────────────────────────
-# INSTALL SYSTEM PACKAGES
+# INSTALL PACKAGES
 # ─────────────────────────────────────────────
 def install_packages(config: Config) -> None:
     pkgs = {
@@ -87,8 +87,7 @@ def install_packages(config: Config) -> None:
         if codec:
             pkgs.update(codec.packages)
 
-    if config.cpu:
-        add(config.cpu)
+    add(config.cpu)
 
     for group in [config.amd, config.nvidia, config.intel]:
         if group:
@@ -115,8 +114,8 @@ def build_ffmpeg_flags(config: Config) -> str:
     for group in [config.amd, config.nvidia, config.intel]:
         if group:
             for codec in group.model_dump().values():
-                if isinstance(codec, GPUCodec):
-                    add(codec)
+                if isinstance(codec, dict) and codec.get("enabled"):
+                    flags.extend(codec.get("ffmpegFlags", []))
 
     flags += [
         f"--prefix={PREFIX}",
@@ -135,6 +134,7 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
 
     print("\n🔥 Building CPU codecs")
 
+    # x264
     sh("""
         rm -rf x264 && \
         git clone --depth=1 https://code.videolan.org/videolan/x264.git && \
@@ -144,6 +144,7 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
         sudo make install
     """, env)
 
+    # x265
     sh("""
         rm -rf x265 && \
         git clone --depth=1 https://github.com/videolan/x265.git && \
@@ -156,11 +157,41 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
         sudo make install
     """, env)
 
+    # 🔥 FIX: create pkg-config for x265
+    sh(r"""
+        echo "Fixing x265 pkg-config"
+
+        sudo mkdir -p /usr/local/lib/pkgconfig
+
+        if [ -f /usr/local/lib/libx265.a ]; then
+            LIBDIR=/usr/local/lib
+        elif [ -f /usr/local/lib64/libx265.a ]; then
+            LIBDIR=/usr/local/lib64
+        else
+            echo "ERROR: libx265 not found"
+            exit 1
+        fi
+
+        sudo tee /usr/local/lib/pkgconfig/x265.pc > /dev/null <<EOF
+    prefix=/usr/local
+    exec_prefix=\${prefix}
+    libdir=\${prefix}/lib
+    includedir=\${prefix}/include
+
+    Name: x265
+    Description: H.265/HEVC encoder
+    Version: 3.5
+    Libs: -L${LIBDIR} -lx265 -lpthread -lm
+    Cflags: -I\${includedir}
+    EOF
+    """, env)
+
+    # aom
     sh("""
         rm -rf aom && \
         git clone --depth=1 https://aomedia.googlesource.com/aom && \
         mkdir -p aom/build && cd aom/build && \
-        cmake .. -G "Unix Makefiles" \
+        cmake .. \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DBUILD_SHARED_LIBS=OFF \
             -DENABLE_TESTS=OFF && \
@@ -168,11 +199,12 @@ def build_cpu_codecs(config: Config, env: Dict[str, str]) -> None:
         sudo make install
     """, env)
 
+    # svt-av1
     sh("""
         rm -rf SVT-AV1 && \
         git clone --depth=1 https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
         cd SVT-AV1/Build && \
-        cmake .. -G "Unix Makefiles" \
+        cmake .. \
             -DCMAKE_INSTALL_PREFIX=/usr/local \
             -DBUILD_SHARED_LIBS=OFF && \
         make -j$(nproc) && \
@@ -196,6 +228,7 @@ def build_ffmpeg(flags: str, env: Dict[str, str]) -> None:
             --enable-static \
             --disable-shared \
             --pkg-config=pkg-config \
+            --pkg-config-flags="--static" \
             --extra-cflags='-I/usr/local/include' \
             --extra-ldflags='-L/usr/local/lib' && \
         make -j$(nproc) && \
@@ -209,9 +242,9 @@ def build_ffmpeg(flags: str, env: Dict[str, str]) -> None:
 def main() -> None:
     config = load_config()
 
-    env = dict(os.environ)
-    env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig"
-    env["PKG_CONFIG_LIBDIR"] = ""
+    env: Dict[str, str] = dict(os.environ)
+    env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+    env.pop("PKG_CONFIG_LIBDIR", None)
 
     WORKDIR.mkdir(exist_ok=True)
 
@@ -225,7 +258,7 @@ def main() -> None:
 
     build_ffmpeg(flags, env)
 
-    print("\n✅ DONE: Pydantic-driven FFmpeg build complete")
+    print("\n✅ DONE: FFmpeg build complete")
 
 
 if __name__ == "__main__":

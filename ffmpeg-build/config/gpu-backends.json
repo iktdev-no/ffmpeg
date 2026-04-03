@@ -33,13 +33,7 @@
       "enabled": true,
       "description": "NVIDIA NVENC/AV1.",
       "packages": [],
-      "ffmpegFlags": [
-        "--enable-nonfree",
-        "--enable-nvenc",
-        "--enable-cuda",
-        "--enable-cuvid",
-        "--enable-nvdec"
-      ]
+      "ffmpegFlags": []
     }
   },
   "intel": {
