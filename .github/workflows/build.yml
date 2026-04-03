@@ -130,10 +130,18 @@ jobs:
   ffmpeg:
     runs-on: ubuntu-latest
     needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
+
     steps:
       - uses: actions/checkout@v4
 
-      # --- DOWNLOAD ALL ARTIFACTS ---
+      # --- CACHE FFMPEG SOURCE ---
+      - name: Cache FFmpeg source
+        uses: actions/cache@v4
+        with:
+          path: ffmpeg
+          key: ffmpeg-src-${{ runner.os }}-v1
+
+      # --- DOWNLOAD ARTIFACTS ---
       - uses: actions/download-artifact@v4
         with:
           name: x264-install
@@ -165,7 +173,7 @@ jobs:
           path: /tmp/nvcodec
 
       # --- SYSTEM DEPS ---
-      - name: Install static system libs
+      - name: Install deps
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -178,7 +186,7 @@ jobs:
             yasm
 
       # --- INSTALL LIBS ---
-      - name: Install all libs
+      - name: Install libs
         run: |
           sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig
 
@@ -207,34 +215,40 @@ jobs:
       # --- DEBUG ---
       - name: Debug pkg-config
         run: |
-          echo "==== PKG CONFIG PATH ===="
-          echo $PKG_CONFIG_PATH
-
-          echo "==== AVAILABLE PACKAGES ===="
+          echo "==== PACKAGES ===="
           pkg-config --list-all | grep -E "x264|x265|aom|vpx|Svt" || true
 
-          echo "==== STATIC CHECKS ===="
+          echo "==== STATIC LIBS ===="
           PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x264 || true
           PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x265 || true
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs aom || true
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs vpx || true
 
-      # --- BUILD FFMPEG ---
+      # --- BUILD ---
       - name: Build FFmpeg
         env:
           PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
-          PKG_CONFIG: pkg-config --static
           CFLAGS: -I/usr/local/include
           LDFLAGS: -L/usr/local/lib
         run: |
           python ffmpeg-build/generate_flags.py
-
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig \
-          PKG_CONFIG="pkg-config --static" \
-          CFLAGS="-I/usr/local/include" \
-          LDFLAGS="-L/usr/local/lib" \
           python ffmpeg-build/build_ffmpeg.py
 
+      # --- SAVE CONFIG LOG ---
+      - name: Upload config.log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-config-log
+          path: ffmpeg/ffbuild/config.log
+
+      # --- SAVE BUILD LOG ---
+      - name: Upload build dir
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-build-dir
+          path: ffmpeg/
+
+      # --- FINAL BINARIES ---
       - uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-static

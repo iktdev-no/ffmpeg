@@ -31,7 +31,7 @@ def main() -> None:
     run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"], env=env)
 
     flags = FLAGS_PATH.read_text().replace("\n", " ")
-    cfg = f"./configure {flags} --prefix=/usr/local"
+    cfg = f"./configure {flags} --pkg-config-flags=--static --prefix=/usr/local"
 
     run([
         "bash", "-c",
