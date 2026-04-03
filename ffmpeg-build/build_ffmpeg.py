@@ -28,7 +28,7 @@ def main() -> None:
         "/usr/share/pkgconfig"
     ])
 
-    env["PKG_CONFIG_LIBDIR"] = ""  # IMPORTANT: avoid override bugs
+    env.pop("PKG_CONFIG_LIBDIR", None)
 
     # Remove conflicting flags
     env.pop("CFLAGS", None)
