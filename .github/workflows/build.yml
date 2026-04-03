@@ -132,6 +132,10 @@ jobs:
     needs: [x264, x265, libaom, libvpx, svtav1, nvcodec]
 
     steps:
+      - name: Ensure pkg-config path
+        run: |
+          echo "PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
 
       # --- CACHE FFMPEG SOURCE ---
@@ -211,6 +215,15 @@ jobs:
           sudo cp -r /tmp/svtav1/lib/pkgconfig/* /usr/local/lib/pkgconfig/
 
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
+
+      - name: Fix pkg-config files (STRICT)
+        run: |
+          python ffmpeg-build/fix_pkgconfig.py
+
+          # verify x265
+          pkg-config --exists x265 || (echo "x265 pkg-config STILL MISSING" && exit 1)
+
+          pkg-config --static --libs x265
 
       # --- DEBUG ---
       - name: Debug lib paths

@@ -2,16 +2,26 @@
 from utils import run
 
 def main():
+    # ─────────────────────────────
+    # Install deps
+    # ─────────────────────────────
     run(["sudo", "apt-get", "update"])
     run(["sudo", "apt-get", "install", "-y",
          "git", "cmake", "ninja-build", "build-essential", "pkg-config"])
 
+    # ─────────────────────────────
+    # Clone x265
+    # ─────────────────────────────
     run(["rm", "-rf", "x265"])
     run(["git", "clone", "--depth=1", "https://github.com/videolan/x265.git"])
 
+    # ─────────────────────────────
+    # Build x265 (FIXED: correct cmake root)
+    # ─────────────────────────────
     run(["bash", "-c",
+         "set -e && "
          "mkdir -p x265/build && cd x265/build && "
-         "cmake -G Ninja ../source "
+         "cmake -G Ninja .. "
          "-DCMAKE_BUILD_TYPE=Release "
          "-DENABLE_SHARED=OFF "
          "-DENABLE_PIC=ON "
@@ -21,7 +31,7 @@ def main():
     run(["sudo", "ldconfig"])
 
     # ─────────────────────────────
-    # STEP 1: verify install
+    # Verify install (STRICT)
     # ─────────────────────────────
     run(["bash", "-c", r"""
     set -e
@@ -37,46 +47,49 @@ def main():
     """])
 
     # ─────────────────────────────
-    # STEP 2 + 3: ensure pkg-config file
+    # Ensure pkg-config (FIXED + ROBUST fallback)
     # ─────────────────────────────
     run(["bash", "-c", r"""
     set -e
 
-    # If pkg-config already works, do nothing
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
+
     if pkg-config --exists x265; then
-      echo "x265.pc already exists"
+      echo "x265.pc already OK"
       exit 0
     fi
 
-    echo "Creating x265.pc fallback"
+    echo "Generating missing x265.pc fallback"
 
     sudo mkdir -p /usr/local/lib/pkgconfig
 
-    # Detect libdir
-    if [ -f /usr/local/lib/libx265.a ]; then
-      LIBDIR=/usr/local/lib
-    elif [ -f /usr/local/lib64/libx265.a ]; then
-      LIBDIR=/usr/local/lib64
-    else
-      echo "ERROR: libx265 not found"
+    LIBDIR=""
+    for d in /usr/local/lib /usr/local/lib64 /usr/lib/x86_64-linux-gnu; do
+      if ls $d/libx265.a >/dev/null 2>&1; then
+        LIBDIR=$d
+        break
+      fi
+    done
+
+    if [ -z "$LIBDIR" ]; then
+      echo "ERROR: libx265 not found anywhere"
       exit 1
     fi
 
-    # Create pkg-config file safely
-    sudo bash -c "cat > /usr/local/lib/pkgconfig/x265.pc <<EOF
+    sudo tee /usr/local/lib/pkgconfig/x265.pc > /dev/null <<EOF
 prefix=/usr/local
 exec_prefix=\${prefix}
 libdir=${LIBDIR}
 includedir=\${prefix}/include
 
 Name: x265
-Description: H.265/HEVC encoder
+Description: H.265/HEVC encoder library
 Version: 3.5
-Libs: -L${LIBDIR} -lx265
+Libs: -L${LIBDIR} -lx265 -lm -lpthread
 Cflags: -I\${includedir}
-EOF"
+EOF
 
-    echo "x265.pc created"
+    echo "x265.pc created successfully"
     """])
 
 if __name__ == "__main__":
