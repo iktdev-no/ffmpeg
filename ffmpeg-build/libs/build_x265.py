@@ -19,14 +19,14 @@ def main():
     # Build x265 (FIXED: correct cmake root)
     # ─────────────────────────────
     run(["bash", "-c",
-         "set -e && "
-         "mkdir -p x265/build && cd x265/build && "
-         "cmake -G Ninja .. "
-         "-DCMAKE_BUILD_TYPE=Release "
-         "-DENABLE_SHARED=OFF "
-         "-DENABLE_PIC=ON "
-         "-DCMAKE_INSTALL_PREFIX=/usr/local && "
-         "ninja && sudo ninja install"])
+        "set -e && "
+        "mkdir -p x265/build && cd x265/build && "
+        "cmake -G Ninja ../source "
+        "-DCMAKE_BUILD_TYPE=Release "
+        "-DENABLE_SHARED=OFF "
+        "-DENABLE_PIC=ON "
+        "-DCMAKE_INSTALL_PREFIX=/usr/local && "
+        "ninja && sudo ninja install"])
 
     run(["sudo", "ldconfig"])
 
