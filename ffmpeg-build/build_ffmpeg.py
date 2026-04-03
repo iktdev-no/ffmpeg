@@ -15,8 +15,8 @@ def main() -> None:
     DIST_PATH.mkdir(parents=True, exist_ok=True)
 
     env: Dict[str, str] = os.environ.copy()
-    env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig"
-    env["PKG_CONFIG_LIBDIR"] = "/usr/local/lib/pkgconfig"
+    env["PKG_CONFIG_PATH"] = "/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig"
+    env["PKG_CONFIG"] = "pkg-config --static"
     env["CFLAGS"] = "-I/usr/local/include"
     env["LDFLAGS"] = "-L/usr/local/lib"
 
@@ -33,10 +33,9 @@ def main() -> None:
     flags = FLAGS_PATH.read_text().replace("\n", " ")
     cfg = f"./configure {flags} --prefix=/usr/local"
 
-    # ⭐ FIX: FORCE PKG_CONFIG_PATH INSIDE THE CONFIGURE COMMAND
     run([
         "bash", "-c",
-        f"cd ffmpeg && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig PKG_CONFIG_LIBDIR=/usr/local/lib/pkgconfig {cfg}"
+        f"cd ffmpeg && PKG_CONFIG='pkg-config --static' PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig {cfg}"
     ], env=env)
 
     run(["bash", "-c", "cd ffmpeg && make -j$(nproc) V=1"], env=env)

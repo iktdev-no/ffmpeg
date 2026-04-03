@@ -40,10 +40,12 @@ jobs:
         run: |
           mkdir -p x265-install/include
           mkdir -p x265-install/lib
+          mkdir -p x265-install/lib/pkgconfig
 
           cp /usr/local/include/x265.h x265-install/include/
           cp /usr/local/include/x265_config.h x265-install/include/ || true
           cp /usr/local/lib/libx265.a x265-install/lib/
+          cp /usr/local/lib/pkgconfig/x265.pc x265-install/lib/pkgconfig/ || true
       - uses: actions/upload-artifact@v4
         with:
           name: x265-install
@@ -162,12 +164,20 @@ jobs:
           name: nvcodec-install
           path: /tmp/nvcodec
 
+      # --- SYSTEM DEPS ---
       - name: Install static system libs
         run: |
           sudo apt-get update
-          sudo apt-get install -y libc6-dev libpthread-stubs0-dev
+          sudo apt-get install -y \
+            libc6-dev \
+            libpthread-stubs0-dev \
+            zlib1g-dev \
+            libdrm-dev \
+            pkg-config \
+            nasm \
+            yasm
 
-      # --- INSTALL ALL LIBS INTO /usr/local ---
+      # --- INSTALL LIBS ---
       - name: Install all libs
         run: |
           sudo mkdir -p /usr/local/include /usr/local/lib /usr/local/lib/pkgconfig
@@ -178,6 +188,7 @@ jobs:
 
           sudo cp -r /tmp/x265/include/* /usr/local/include/
           sudo cp -r /tmp/x265/lib/*.a /usr/local/lib/
+          sudo cp -r /tmp/x265/lib/pkgconfig/* /usr/local/lib/pkgconfig/ || true
 
           sudo cp -r /tmp/libaom/include/* /usr/local/include/
           sudo cp -r /tmp/libaom/lib/*.a /usr/local/lib/
@@ -193,43 +204,33 @@ jobs:
 
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
 
-      - name: Force system pkg-config to see our .pc files
+      # --- DEBUG ---
+      - name: Debug pkg-config
         run: |
-          sudo cp /usr/local/lib/pkgconfig/*.pc /usr/lib/pkgconfig/ || true
-          sudo cp /usr/local/lib/pkgconfig/*.pc /usr/share/pkgconfig/ || true
+          echo "==== PKG CONFIG PATH ===="
+          echo $PKG_CONFIG_PATH
 
-      - name: Debug pkg-config environment
-        run: |
-          echo "--- WHICH PKG-CONFIG ---"
-          which pkg-config || true
-          ls -l $(which pkg-config) || true
+          echo "==== AVAILABLE PACKAGES ===="
+          pkg-config --list-all | grep -E "x264|x265|aom|vpx|Svt" || true
 
-          echo "--- PKG-CONFIG VERSION ---"
-          pkg-config --version || true
+          echo "==== STATIC CHECKS ===="
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x264 || true
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x265 || true
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs aom || true
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs vpx || true
 
-          echo "--- PKG_CONFIG_PATH ---"
-          echo "$PKG_CONFIG_PATH"
-
-          echo "--- LIST /usr/local/lib/pkgconfig ---"
-          ls -l /usr/local/lib/pkgconfig || true
-
-          echo "--- TRY pkg-config x264 ---"
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --exists --print-errors x264 || echo "FAILED"
-
-          echo "--- TRY pkg-config --debug x264 ---"
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --debug --exists x264 || true
-
-      # --- BUILD FFMPEG (WITH CORRECT ENVIRONMENT) ---
+      # --- BUILD FFMPEG ---
       - name: Build FFmpeg
         env:
-          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
-          PKG_CONFIG_LIBDIR: /usr/local/lib/pkgconfig
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
+          PKG_CONFIG: pkg-config --static
           CFLAGS: -I/usr/local/include
           LDFLAGS: -L/usr/local/lib
         run: |
           python ffmpeg-build/generate_flags.py
-          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
-          PKG_CONFIG_LIBDIR=/usr/local/lib/pkgconfig \
+
+          PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig \
+          PKG_CONFIG="pkg-config --static" \
           CFLAGS="-I/usr/local/include" \
           LDFLAGS="-L/usr/local/lib" \
           python ffmpeg-build/build_ffmpeg.py
