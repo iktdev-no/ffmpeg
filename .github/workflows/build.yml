@@ -213,6 +213,10 @@ jobs:
           sudo cp -r /tmp/nvcodec/include/* /usr/local/include/
 
       # --- DEBUG ---
+      - name: Debug lib paths
+        run: |
+          ls -R /usr/local/lib/pkgconfig || true
+          ls -R /usr/local/lib64/pkgconfig || true
       - name: Debug pkg-config
         run: |
           echo "==== PACKAGES ===="
@@ -222,10 +226,21 @@ jobs:
           PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x264 || true
           PKG_CONFIG_PATH=/usr/local/lib/pkgconfig pkg-config --static --libs x265 || true
 
+      - name: Validate deps (STRICT)
+        run: |
+          pkg-config --static --exists x264 || exit 1
+          pkg-config --static --exists x265 || exit 1
+          pkg-config --static --exists aom || exit 1
+          pkg-config --static --exists vpx || exit 1
+          pkg-config --static --exists SvtAv1Enc || exit 1
+
+          pkg-config --static --libs x264
+          pkg-config --static --libs x265
+
       # --- BUILD ---
       - name: Build FFmpeg
         env:
-          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
+          PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig
           CFLAGS: -I/usr/local/include
           LDFLAGS: -L/usr/local/lib
         run: |

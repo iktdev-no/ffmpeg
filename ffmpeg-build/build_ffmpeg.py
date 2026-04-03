@@ -19,22 +19,25 @@ def main() -> None:
     env: Dict[str, str] = os.environ.copy()
 
     # ─────────────────────────────
-    # pkg-config setup (IMPORTANT)
+    # pkg-config (robust CI fix)
     # ─────────────────────────────
-    env["PKG_CONFIG_PATH"] = (
-        "/usr/local/lib/pkgconfig:"
-        "/usr/lib/pkgconfig:"
+    env["PKG_CONFIG_PATH"] = ":".join([
+        "/usr/local/lib/pkgconfig",
+        "/usr/local/lib64/pkgconfig",
+        "/usr/lib/pkgconfig",
         "/usr/share/pkgconfig"
-    )
+    ])
 
-    # Keep env clean (avoid interfering detection)
+    env["PKG_CONFIG_LIBDIR"] = ""  # IMPORTANT: avoid override bugs
+
+    # Remove conflicting flags
     env.pop("CFLAGS", None)
     env.pop("LDFLAGS", None)
 
     # ─────────────────────────────
-    # System deps
+    # System deps (NO env here)
     # ─────────────────────────────
-    run(["sudo", "apt-get", "update"], env=env)
+    run(["sudo", "apt-get", "update"])
     run([
         "sudo", "apt-get", "install", "-y",
         "git",
@@ -42,36 +45,42 @@ def main() -> None:
         "yasm",
         "pkg-config",
         "build-essential"
-    ], env=env)
+    ])
 
     # ─────────────────────────────
     # FFmpeg source
     # ─────────────────────────────
-    run(["rm", "-rf", "ffmpeg"], env=env)
-    run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"], env=env)
+    run(["rm", "-rf", "ffmpeg"])
+    run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"])
 
     # ─────────────────────────────
-    # Debug pkg-config BEFORE build
+    # HARD DIAGNOSTICS (this saves you pain)
     # ─────────────────────────────
     run(["bash", "-c", "which pkg-config"], env=env)
     run(["bash", "-c", "pkg-config --version"], env=env)
-
-    run(["bash", "-c", "pkg-config --exists x264 && echo x264 OK || echo x264 MISSING"], env=env)
-    run(["bash", "-c", "pkg-config --exists x265 && echo x265 OK || echo x265 MISSING"], env=env)
-
     run(["bash", "-c", "echo $PKG_CONFIG_PATH"], env=env)
+    run(["bash", "-c", "pkg-config --variable pc_path pkg-config"], env=env)
+
     run(["bash", "-c", "ls -R /usr/local/lib/pkgconfig || true"], env=env)
+    run(["bash", "-c", "ls -R /usr/local/lib64/pkgconfig || true"], env=env)
+
+    # STRICT dependency validation
+    run(["bash", "-c", "pkg-config --exists x264 || exit 1"], env=env)
+    run(["bash", "-c", "pkg-config --exists x265 || exit 1"], env=env)
 
     # ─────────────────────────────
-    # Load generated flags
+    # Load FFmpeg flags
     # ─────────────────────────────
     flags = FLAGS_PATH.read_text().replace("\n", " ").strip()
 
     # ─────────────────────────────
-    # Configure FFmpeg (IMPORTANT: env only)
+    # Configure FFmpeg (FIXED)
     # ─────────────────────────────
     configure_cmd = f"""
+    set -e && cd ffmpeg && \
     ./configure {flags} \
+    --pkg-config=pkg-config \
+    --pkg-config-flags="--static" \
     --prefix=/usr/local \
     --enable-static \
     --disable-shared \
@@ -79,11 +88,7 @@ def main() -> None:
     --extra-ldflags='-L/usr/local/lib'
     """
 
-    run([
-        "bash",
-        "-c",
-        f"cd ffmpeg && {configure_cmd}"
-    ], env=env)
+    run(["bash", "-c", configure_cmd], env=env)
 
     # ─────────────────────────────
     # Build
@@ -91,12 +96,12 @@ def main() -> None:
     run(["bash", "-c", "cd ffmpeg && make -j$(nproc) V=1"], env=env)
 
     # ─────────────────────────────
-    # Output
+    # Output binaries
     # ─────────────────────────────
-    run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")], env=env)
-    run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")], env=env)
+    run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")])
+    run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")])
 
-    print("\n✅ FFmpeg build complete")
+    print("\n✅ FFmpeg build complete (CI-hardened)")
 
 
 if __name__ == "__main__":
