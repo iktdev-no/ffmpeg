@@ -75,7 +75,6 @@ def main() -> None:
     --prefix=/usr/local \
     --enable-static \
     --disable-shared \
-    --pkg-config-flags=--static \
     --extra-cflags='-I/usr/local/include' \
     --extra-ldflags='-L/usr/local/lib'
     """
