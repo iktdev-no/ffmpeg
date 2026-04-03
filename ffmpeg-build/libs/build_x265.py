@@ -20,21 +20,63 @@ def main():
 
     run(["sudo", "ldconfig"])
 
+    # ─────────────────────────────
+    # STEP 1: verify install
+    # ─────────────────────────────
     run(["bash", "-c", r"""
     set -e
 
     if [ -f /usr/local/include/x265.h ] && [ -f /usr/local/lib/libx265.a ]; then
       echo "x265 OK (lib)"
-      exit 0
-    fi
-
-    if [ -f /usr/local/include/x265.h ] && [ -f /usr/local/lib64/libx265.a ]; then
+    elif [ -f /usr/local/include/x265.h ] && [ -f /usr/local/lib64/libx265.a ]; then
       echo "x265 OK (lib64)"
+    else
+      echo "ERROR: x265 install incomplete"
+      exit 1
+    fi
+    """])
+
+    # ─────────────────────────────
+    # STEP 2 + 3: ensure pkg-config file
+    # ─────────────────────────────
+    run(["bash", "-c", r"""
+    set -e
+
+    # If pkg-config already works, do nothing
+    if pkg-config --exists x265; then
+      echo "x265.pc already exists"
       exit 0
     fi
 
-    echo "ERROR: x265 install incomplete"
-    exit 1
+    echo "Creating x265.pc fallback"
+
+    sudo mkdir -p /usr/local/lib/pkgconfig
+
+    # Detect libdir
+    if [ -f /usr/local/lib/libx265.a ]; then
+      LIBDIR=/usr/local/lib
+    elif [ -f /usr/local/lib64/libx265.a ]; then
+      LIBDIR=/usr/local/lib64
+    else
+      echo "ERROR: libx265 not found"
+      exit 1
+    fi
+
+    # Create pkg-config file safely
+    sudo bash -c "cat > /usr/local/lib/pkgconfig/x265.pc <<EOF
+prefix=/usr/local
+exec_prefix=\${prefix}
+libdir=${LIBDIR}
+includedir=\${prefix}/include
+
+Name: x265
+Description: H.265/HEVC encoder
+Version: 3.5
+Libs: -L${LIBDIR} -lx265
+Cflags: -I\${includedir}
+EOF"
+
+    echo "x265.pc created"
     """])
 
 if __name__ == "__main__":
