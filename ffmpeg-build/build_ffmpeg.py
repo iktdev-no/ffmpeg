@@ -19,7 +19,7 @@ def main() -> None:
     env: Dict[str, str] = os.environ.copy()
 
     # ─────────────────────────────
-    # pkg-config (robust CI fix)
+    # pkg-config (stable CI config)
     # ─────────────────────────────
     env["PKG_CONFIG_PATH"] = ":".join([
         "/usr/local/lib/pkgconfig",
@@ -28,23 +28,21 @@ def main() -> None:
         "/usr/share/pkgconfig"
     ])
 
-    env.pop("PKG_CONFIG_LIBDIR", None)
-
-    # Remove conflicting flags
-    env.pop("CFLAGS", None)
-    env.pop("LDFLAGS", None)
+    env["PKG_CONFIG_LIBDIR"] = ""
 
     # ─────────────────────────────
-    # System deps (NO env here)
+    # IMPORTANT: static build flags must NOT be removed
+    # ─────────────────────────────
+    env["CFLAGS"] = "-I/usr/local/include"
+    env["LDFLAGS"] = "-L/usr/local/lib -lpthread -lm -ldl"
+
+    # ─────────────────────────────
+    # System deps
     # ─────────────────────────────
     run(["sudo", "apt-get", "update"])
     run([
         "sudo", "apt-get", "install", "-y",
-        "git",
-        "nasm",
-        "yasm",
-        "pkg-config",
-        "build-essential"
+        "git", "nasm", "yasm", "pkg-config", "build-essential"
     ])
 
     # ─────────────────────────────
@@ -54,7 +52,7 @@ def main() -> None:
     run(["git", "clone", "--depth=1", "https://github.com/ffmpeg/ffmpeg.git"])
 
     # ─────────────────────────────
-    # HARD DIAGNOSTICS (this saves you pain)
+    # HARD DIAGNOSTICS
     # ─────────────────────────────
     run(["bash", "-c", "which pkg-config"], env=env)
     run(["bash", "-c", "pkg-config --version"], env=env)
@@ -64,28 +62,30 @@ def main() -> None:
     run(["bash", "-c", "ls -R /usr/local/lib/pkgconfig || true"], env=env)
     run(["bash", "-c", "ls -R /usr/local/lib64/pkgconfig || true"], env=env)
 
-    # STRICT dependency validation
+    # STRICT validation
     run(["bash", "-c", "pkg-config --exists x264 || exit 1"], env=env)
     run(["bash", "-c", "pkg-config --exists x265 || exit 1"], env=env)
 
     # ─────────────────────────────
-    # Load FFmpeg flags
+    # Load flags
     # ─────────────────────────────
     flags = FLAGS_PATH.read_text().replace("\n", " ").strip()
 
     # ─────────────────────────────
-    # Configure FFmpeg (FIXED)
+    # CONFIGURE (FIXED: env inline to avoid CI shell loss)
     # ─────────────────────────────
     configure_cmd = f"""
-    set -e && cd ffmpeg && \
+    set -e
+    cd ffmpeg
+
     ./configure {flags} \
-    --pkg-config=pkg-config \
-    --pkg-config-flags="--static" \
-    --prefix=/usr/local \
-    --enable-static \
-    --disable-shared \
-    --extra-cflags='-I/usr/local/include' \
-    --extra-ldflags='-L/usr/local/lib'
+        --pkg-config=pkg-config \
+        --pkg-config-flags="--static" \
+        --prefix=/usr/local \
+        --enable-static \
+        --disable-shared \
+        --extra-cflags='-I/usr/local/include' \
+        --extra-ldflags='-L/usr/local/lib'
     """
 
     run(["bash", "-c", configure_cmd], env=env)
@@ -101,7 +101,7 @@ def main() -> None:
     run(["cp", "ffmpeg/ffmpeg", str(DIST_PATH / "ffmpeg")])
     run(["cp", "ffmpeg/ffprobe", str(DIST_PATH / "ffprobe")])
 
-    print("\n✅ FFmpeg build complete (CI-hardened)")
+    print("\n✅ FFmpeg build complete (FIXED + static-safe)")
 
 
 if __name__ == "__main__":
