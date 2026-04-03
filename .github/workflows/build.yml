@@ -28,6 +28,8 @@ jobs:
             git build-essential cmake ninja-build \
             pkg-config nasm yasm curl \
             libdrm-dev zlib1g-dev
+          python3 -m pip install --upgrade pip
+          pip install pydantic
 
       # ─────────────────────────────────────
       # BUILD LIBS (ALL IN SAME JOB)
